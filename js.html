@@ -2,110 +2,288 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TradeTitan Profit & Loss Chart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SentienX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      background-color: #111827;
-      color: white;
-      font-family: sans-serif;
-      padding: 2rem;
+      background: linear-gradient(180deg, #0f001a 0%, #1a0033 100%);
+      font-family: 'Courier New', monospace;
     }
-    .card {
-      background-color: #1f2937;
-      padding: 1.5rem;
-      border-radius: 1rem;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      max-width: 900px;
-      margin: auto;
+    .circuit-bg::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(0, 255, 255, 0.04) 1px, transparent 2px),
+        repeating-linear-gradient(90deg, rgba(255, 0, 255, 0.03) 1px, transparent 2px);
+      z-index: 0;
+      pointer-events: none;
     }
-    h2 {
-      margin-bottom: 1rem;
-      font-size: 1.5rem;
-      font-weight: bold;
+    .neon-box {
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid transparent;
+      border-image: linear-gradient(45deg, #00f0ff, #ff00ff) 1;
+      box-shadow: 0 0 20px #ff00ff, 0 0 30px #00f0ff;
     }
-    canvas {
-      max-width: 100%;
-      height: 300px;
+    .neon-text {
+      color: #f0f0f0;
+      text-shadow: 0 0 5px #ff00ff, 0 0 10px #00f0ff;
+    }
+    .neon-button {
+      background: linear-gradient(to right, #ff00ff, #00f0ff);
+      box-shadow: 0 0 15px #ff00ff, 0 0 25px #00f0ff;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .neon-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px #ff00ff, 0 0 45px #00f0ff;
+    }
+    .spinner {
+      border: 3px solid #fff;
+      border-top: 3px solid #00f0ff;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes marquee {
+      0% { transform: translateX(100%); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateX(-100%); opacity: 0; }
+    }
+    .animate-marquee {
+      animation: marquee 6s linear infinite;
     }
   </style>
 </head>
-<body>
+<body class="text-white font-mono circuit-bg">
 
-  <div class="card">
-    <h2>Profit & Loss (Updated Every 3 Min)</h2>
-    <canvas id="plChart"></canvas>
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="flex items-center justify-center min-h-screen px-4 relative">
+    <div class="neon-box rounded-xl p-8 w-full max-w-sm space-y-6 z-10">
+      <h2 id="typing-title" class="text-2xl text-center font-bold neon-text">SentienX AI</h2>
+
+      <div>
+        <label for="userid" class="text-sm text-cyan-300">User ID</label>
+        <input id="userid" type="text" placeholder="SentienX-ID"
+          class="w-full mt-1 px-4 py-2 bg-black/60 text-white border border-cyan-500 rounded focus:outline-none" />
+      </div>
+
+      <div class="relative h-20">
+        <label for="password" class="text-sm text-pink-400">Access Key</label>
+        <input id="password" type="password" placeholder=""
+          class="w-full mt-1 px-4 py-2 bg-black/60 text-white border border-pink-500 rounded focus:outline-none" />
+        <div class="absolute top-[36px] left-0 w-full overflow-hidden text-center pointer-events-none select-none">
+          <div class="text-sm text-pink-300 animate-marquee inline-block font-bold">
+            Authentication access key required
+          </div>
+        </div>
+      </div>
+
+      <button id="auth-btn" class="neon-button w-full py-2 rounded text-black font-bold uppercase relative">
+        <span id="btn-text">Authenticate</span>
+        <div id="spinner" class="spinner absolute right-4 top-2 hidden"></div>
+      </button>
+
+      <footer class="pt-4 text-center text-xs text-cyan-400 border-t border-pink-500 mt-4">
+        Ⓒ 2025 Powered by <span class="text-pink-300 font-semibold">The Inner Circle</span>
+      </footer>
+    </div>
   </div>
 
+  <!-- PASSWORD SETUP MODAL -->
+  <div id="modal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl shadow-2xl w-full max-w-sm space-y-4 text-white">
+      <h3 class="text-lg font-bold text-pink-400">🔒 Set New Credentials</h3>
+      <input id="new-pass1" type="password" placeholder="Enter new password"
+        class="w-full px-4 py-2 rounded bg-black/60 border border-cyan-400 focus:ring-pink-500 focus:outline-none" />
+      <input id="new-pass2" type="password" placeholder="Confirm new password"
+        class="w-full px-4 py-2 rounded bg-black/60 border border-cyan-400 focus:ring-pink-500 focus:outline-none" />
+      <button id="save-pass" class="neon-button w-full py-2 rounded text-black font-bold uppercase">Save</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD SCREEN -->
+  <div id="dashboard-screen" class="hidden">
+    <div class="flex min-h-screen bg-gray-950 font-sans">
+      <aside class="w-64 bg-gray-900 p-5 space-y-6">
+        <h2 class="text-2xl font-bold text-cyan-400">SentienX</h2>
+        <nav class="space-y-6 text-sm text-gray-300 mt-6">
+          <div>
+            <h3 class="text-gray-500 uppercase tracking-wide text-xs mb-2">System</h3>
+            <a href="#" class="flex items-center space-x-2 text-cyan-400 font-semibold"><span>📊</span><span>Dashboard</span></a>
+            <a href="#" class="flex items-center space-x-2 hover:text-white"><span>🧠</span><span>AI Engine</span></a>
+            <a href="#" class="flex items-center space-x-2 hover:text-white"><span>⚙️</span><span>Strategies</span></a>
+          </div>
+          <div>
+            <h3 class="text-gray-500 uppercase tracking-wide text-xs mb-2">Tools</h3>
+            <a href="#" class="flex items-center space-x-2 hover:text-white"><span>📈</span><span>Market View</span></a>
+            <a href="#" class="flex items-center space-x-2 hover:text-white"><span>🧪</span><span>Trade Simulator</span></a>
+          </div>
+          <div>
+            <h3 class="text-gray-500 uppercase tracking-wide text-xs mb-2">Logs</h3>
+            <a href="#" class="flex items-center space-x-2 hover:text-white"><span>📒</span><span>Trade Logs</span></a>
+            <a href="#" class="flex items-center space-x-2 hover:text-white"><span>🔐</span><span>Security</span></a>
+          </div>
+        </nav>
+      </aside>
+      <main class="flex-1 p-6 space-y-6">
+        <header class="flex justify-between items-center border-b border-gray-800 pb-4">
+          <h1 class="text-3xl font-semibold text-cyan-300">🧠 SentienX Dashboard</h1>
+          <span class="text-sm text-gray-400">Status: <span class="text-green-400">Online</span></span>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Info Cards -->
+          <div class="bg-gray-800 p-4 rounded-2xl shadow">
+            <h2 class="text-lg font-semibold mb-2">🛰️ System Modules</h2>
+            <ul class="text-sm text-gray-300 space-y-1">
+              <li>🧠 Engine: <span class="text-green-400">Inner Circle AI</span></li>
+              <li>📊 Strategy: <span class="text-blue-300">Multi-Filter Logic</span></li>
+              <li>🔁 Martingale: <span class="text-yellow-300">Smart V3</span></li>
+              <li>⚙️ State: <span class="text-lime-400">Adaptive</span></li>
+            </ul>
+          </div>
+
+          <div class="bg-gray-800 p-4 rounded-2xl shadow">
+            <h2 class="text-lg font-semibold mb-2">📈 Market Summary</h2>
+            <div class="text-sm text-gray-300">
+              Volatility: <span class="text-orange-300">High</span><br />
+              BTC: <span class="text-green-400">$59,800</span><br />
+              ETH: <span class="text-green-300">$3,240</span>
+            </div>
+          </div>
+
+          <div class="bg-gray-800 p-4 rounded-2xl shadow">
+            <h2 class="text-lg font-semibold mb-2">🛠️ Active Strategies</h2>
+            <ul class="text-sm text-gray-300 space-y-1">
+              <li>📊 Trend Filter: <span class="text-green-400">Enabled</span></li>
+              <li>📐 S/R Levels: <span class="text-green-400">Enabled</span></li>
+              <li>📉 Momentum: <span class="text-green-400">Enabled</span></li>
+              <li>🕯️ Candlestick: <span class="text-green-400">Enabled</span></li>
+            </ul>
+          </div>
+
+          <div class="bg-gray-800 p-4 rounded-2xl shadow">
+            <h2 class="text-lg font-semibold mb-2">📒 Latest Trades</h2>
+            <ul class="text-sm text-gray-300 space-y-1">
+              <li>✔️ BTC/USDT - LONG - +3.2%</li>
+              <li>✔️ ETH/USDT - SHORT - +1.8%</li>
+              <li>❌ XRP/USDT - LONG - -0.7%</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-2xl shadow">
+          <h2 class="text-lg font-semibold mb-4">📊 Trade Performance Chart</h2>
+          <canvas id="performanceChart" class="w-full h-64"></canvas>
+        </div>
+      </main>
+    </div>
+    <footer class="text-center p-4 text-gray-500 text-xs border-t border-gray-800">
+      Ⓒ 2025 SentienX AI Engine — Built by Inner Circle, Marvel, Waden_Augusta, RigigÊ, Mac_wrld, Ghost & Professor.
+    </footer>
+  </div>
+
+  <!-- JS Logic -->
   <script>
-    function generateMockData() {
-      const data = [];
-      const now = new Date();
-      for (let i = 0; i < 20; i++) {
-        const minutes = (now.getMinutes() + i * 3) % 60;
-        const label = `${now.getHours()}:${String(minutes).padStart(2, '0')}`;
-        data.push({
-          time: label,
-          profit: Math.floor(Math.random() * 2000 - 1000)
-        });
+    const title = "SentienX AI";
+    let i = 0;
+    const target = document.getElementById("typing-title");
+    function type() {
+      if (i < title.length) {
+        target.textContent += title.charAt(i);
+        i++;
+        setTimeout(type, 100);
       }
-      return data;
     }
+    target.textContent = ""; type();
 
-    const ctx = document.getElementById('plChart').getContext('2d');
-    let chartData = generateMockData();
+    const users = [
+      { id: "gideon", key: "sentienx123" },
+      { id: "levis", key: "wadenalpha" },
+      { id: "elius", key: "rigigpass" },
+      { id: "mark", key: "macsecure" },
+      { id: "enock", key: "ghostai2025" },
+      { id: "arnold", key: "profbrain" }
+    ];
 
-    const chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: chartData.map(d => d.time),
-        datasets: [
-          {
-            label: 'Profit',
-            type: 'bar',
-            data: chartData.map(d => d.profit),
-            backgroundColor: '#38bdf8',
-            borderRadius: 4,
-          },
-          {
-            label: 'Profit Trend',
-            type: 'line',
-            data: chartData.map(d => d.profit),
-            borderColor: '#22c55e',
-            borderWidth: 2,
-            fill: false,
-            tension: 0.3,
-          }
-        ]
-      },
-      options: {
-        scales: {
-          x: { ticks: { color: '#ccc' } },
-          y: { ticks: { color: '#ccc' }, beginAtZero: true }
-        },
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: context => `Profit: $${context.raw}`
-            }
-          },
-          legend: { labels: { color: '#ccc' } }
+    const authBtn = document.getElementById("auth-btn");
+    const btnText = document.getElementById("btn-text");
+    const spinner = document.getElementById("spinner");
+
+    authBtn.addEventListener("click", () => {
+      const user = document.getElementById("userid").value.trim().toLowerCase();
+      const pass = document.getElementById("password").value;
+      btnText.textContent = "Verifying...";
+      spinner.classList.remove("hidden");
+      authBtn.disabled = true;
+
+      setTimeout(() => {
+        let localKey = localStorage.getItem(`sentienx-${user}`);
+        const firstTime = users.find(u => u.id === user && u.key === pass);
+        if (firstTime && !localKey) {
+          localStorage.setItem("pendingUser", user);
+          document.getElementById("modal").classList.remove("hidden");
+        } else if (localKey && pass === localKey) {
+          document.getElementById("login-screen").classList.add("hidden");
+          document.getElementById("dashboard-screen").classList.remove("hidden");
+        } else {
+          alert("❌ Invalid credentials");
+          btnText.textContent = "Authenticate";
+          spinner.classList.add("hidden");
+          authBtn.disabled = false;
         }
-      }
+      }, 1500);
     });
 
-    function updateChart() {
-      const newData = generateMockData();
-      chart.data.labels = newData.map(d => d.time);
-      chart.data.datasets[0].data = newData.map(d => d.profit);
-      chart.data.datasets[1].data = newData.map(d => d.profit);
-      chart.update();
-    }
+    document.getElementById("save-pass").addEventListener("click", () => {
+      const p1 = document.getElementById("new-pass1").value;
+      const p2 = document.getElementById("new-pass2").value;
+      const user = localStorage.getItem("pendingUser");
+      if (!p1 || p1 !== p2) return alert("❌ Passwords do not match");
+      localStorage.setItem(`sentienx-${user}`, p1);
+      localStorage.removeItem("pendingUser");
+      alert("✅ Password Set. Please log in.");
+      document.getElementById("modal").classList.add("hidden");
+      btnText.textContent = "Authenticate";
+      spinner.classList.add("hidden");
+      authBtn.disabled = false;
+    });
 
-    // Refresh every 3 minutes (180000 ms)
-    setInterval(updateChart, 180000);
+    // Chart.js
+    window.addEventListener("load", () => {
+      const ctx = document.getElementById('performanceChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+          datasets: [{
+            label: 'Profit %',
+            data: [2.5, 3.2, -1.1, 4.0, 3.8, 5.1],
+            fill: false,
+            borderColor: '#06b6d4',
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: 'white' } } },
+          scales: {
+            x: { ticks: { color: 'white' } },
+            y: { ticks: { color: 'white' } }
+          }
+        }
+      });
+    });
   </script>
-
 </body>
 </html>
