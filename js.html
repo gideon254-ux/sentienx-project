@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TradeTitan Profit & Loss Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-color: #111827;
+      color: white;
+      font-family: sans-serif;
+      padding: 2rem;
+    }
+    .card {
+      background-color: #1f2937;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      max-width: 900px;
+      margin: auto;
+    }
+    h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    canvas {
+      max-width: 100%;
+      height: 300px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Profit & Loss (Updated Every 3 Min)</h2>
+    <canvas id="plChart"></canvas>
+  </div>
+
+  <script>
+    function generateMockData() {
+      const data = [];
+      const now = new Date();
+      for (let i = 0; i < 20; i++) {
+        const minutes = (now.getMinutes() + i * 3) % 60;
+        const label = `${now.getHours()}:${String(minutes).padStart(2, '0')}`;
+        data.push({
+          time: label,
+          profit: Math.floor(Math.random() * 2000 - 1000)
+        });
+      }
+      return data;
+    }
+
+    const ctx = document.getElementById('plChart').getContext('2d');
+    let chartData = generateMockData();
+
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartData.map(d => d.time),
+        datasets: [
+          {
+            label: 'Profit',
+            type: 'bar',
+            data: chartData.map(d => d.profit),
+            backgroundColor: '#38bdf8',
+            borderRadius: 4,
+          },
+          {
+            label: 'Profit Trend',
+            type: 'line',
+            data: chartData.map(d => d.profit),
+            borderColor: '#22c55e',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+          }
+        ]
+      },
+      options: {
+        scales: {
+          x: { ticks: { color: '#ccc' } },
+          y: { ticks: { color: '#ccc' }, beginAtZero: true }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: context => `Profit: $${context.raw}`
+            }
+          },
+          legend: { labels: { color: '#ccc' } }
+        }
+      }
+    });
+
+    function updateChart() {
+      const newData = generateMockData();
+      chart.data.labels = newData.map(d => d.time);
+      chart.data.datasets[0].data = newData.map(d => d.profit);
+      chart.data.datasets[1].data = newData.map(d => d.profit);
+      chart.update();
+    }
+
+    // Refresh every 3 minutes (180000 ms)
+    setInterval(updateChart, 180000);
+  </script>
+
+</body>
+</html>
