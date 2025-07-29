@@ -189,7 +189,7 @@
       </main>
     </div>
     <footer class="text-center p-4 text-gray-500 text-xs border-t border-gray-800">
-      Ⓒ 2025 SentienX AI Engine — Built by Inner Circle, Marvel, Waden_Augusta, RigigÊ, Mac_wrld, Ghost & Professor.
+      Ⓒ 2025 SentienX AI Engine — Built by Inner Circle, Marvel, Waden_Augusta, RigigÊ, Mac_wrld & CEO
     </footer>
   </div>
 
@@ -212,8 +212,8 @@
       { id: "levis", key: "wadenalpha" },
       { id: "elius", key: "rigigpass" },
       { id: "mark", key: "macsecure" },
-      { id: "enock", key: "ghostai2025" },
-      { id: "arnold", key: "profbrain" }
+      { id: "nehemiah", key: "ceo2025" },
+  
     ];
 
     const authBtn = document.getElementById("auth-btn");
@@ -228,7 +228,7 @@
       authBtn.disabled = true;
 
       setTimeout(() => {
-        let localKey = localStorage.getItem(`sentienx-${user}`);
+        let localKey = localStorage.getItem(sentienx-${user});
         const firstTime = users.find(u => u.id === user && u.key === pass);
         if (firstTime && !localKey) {
           localStorage.setItem("pendingUser", user);
@@ -250,7 +250,7 @@
       const p2 = document.getElementById("new-pass2").value;
       const user = localStorage.getItem("pendingUser");
       if (!p1 || p1 !== p2) return alert("❌ Passwords do not match");
-      localStorage.setItem(`sentienx-${user}`, p1);
+      localStorage.setItem(sentienx-${user}, p1);
       localStorage.removeItem("pendingUser");
       alert("✅ Password Set. Please log in.");
       document.getElementById("modal").classList.add("hidden");
