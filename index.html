@@ -219,37 +219,12 @@
     const btnText = document.getElementById("btn-text");
     const spinner = document.getElementById("spinner");
 
-    authBtn.addEventListener("click", () => {
-      const user = document.getElementById("userid").value.trim().toLowerCase();
-      const pass = document.getElementById("password").value;
-      btnText.textContent = "Verifying...";
-      spinner.classList.remove("hidden");
-      authBtn.disabled = true;
-
-      setTimeout(() => {
-        let localKey = localStorage.getItem(sentienx-${user});
-        const firstTime = users.find(u => u.id === user && u.key === pass);
-        if (firstTime && !localKey) {
-          localStorage.setItem("pendingUser", user);
-          document.getElementById("modal").classList.remove("hidden");
-        } else if (localKey && pass === localKey) {
-          document.getElementById("login-screen").classList.add("hidden");
-          document.getElementById("dashboard-screen").classList.remove("hidden");
-        } else {
-          alert("❌ Invalid credentials");
-          btnText.textContent = "Authenticate";
-          spinner.classList.add("hidden");
-          authBtn.disabled = false;
-        }
-      }, 1500);
-    });
-
     document.getElementById("save-pass").addEventListener("click", () => {
       const p1 = document.getElementById("new-pass1").value;
       const p2 = document.getElementById("new-pass2").value;
       const user = localStorage.getItem("pendingUser");
       if (!p1 || p1 !== p2) return alert("❌ Passwords do not match");
-      localStorage.setItem(sentienx-${user}, p1);
+      localStorage.setItem(`sentienx-${user}`, p1);  // Fixed backticks here
       localStorage.removeItem("pendingUser");
       alert("✅ Password Set. Please log in.");
       document.getElementById("modal").classList.add("hidden");
@@ -258,31 +233,93 @@
       authBtn.disabled = false;
     });
 
-    // Chart.js
-    window.addEventListener("load", () => {
+    authBtn.addEventListener("click", () => {
+      const user = document.getElementById("userid").value.trim().toLowerCase();
+      const pass = document.getElementById("password").value;
+      btnText.textContent = "Verifying...";
+      spinner.classList.remove("hidden");
+      authBtn.disabled = true;
+
+      setTimeout(() => {
+        let localKey = localStorage.getItem(`sentienx-${user}`);
+        const firstTime = users.find(u => u.id === user && u.key === pass);
+        if (firstTime) {
+          // Prompt to set new password if no localKey yet
+          if (!localKey) {
+            localStorage.setItem("pendingUser", user);
+            document.getElementById("modal").classList.remove("hidden");
+            btnText.textContent = "Set Password";
+            spinner.classList.add("hidden");
+            authBtn.disabled = false;
+            return;
+          } else {
+            // Has localKey, check if password matches
+            if (pass === localKey) {
+              showDashboard(user);
+            } else {
+              alert("❌ Invalid Password");
+              resetAuthBtn();
+            }
+          }
+        } else if (localKey) {
+          if (pass === localKey) {
+            showDashboard(user);
+          } else {
+            alert("❌ Invalid Password");
+            resetAuthBtn();
+          }
+        } else {
+          alert("❌ User not found or incorrect password");
+          resetAuthBtn();
+        }
+      }, 1500);
+    });
+
+    function resetAuthBtn() {
+      btnText.textContent = "Authenticate";
+      spinner.classList.add("hidden");
+      authBtn.disabled = false;
+    }
+
+    function showDashboard(user) {
+      document.getElementById("login-screen").classList.add("hidden");
+      document.getElementById("dashboard-screen").classList.remove("hidden");
+      alert(`✅ Welcome back, ${user}!`);
+      resetAuthBtn();
+      // Initialize Chart
+      initChart();
+    }
+
+    function initChart() {
       const ctx = document.getElementById('performanceChart').getContext('2d');
       new Chart(ctx, {
         type: 'line',
         data: {
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
           datasets: [{
-            label: 'Profit %',
-            data: [2.5, 3.2, -1.1, 4.0, 3.8, 5.1],
+            label: 'Trade Profit %',
+            data: [2, 3.5, 1, 4, 3, 5, 6],
             fill: false,
-            borderColor: '#06b6d4',
-            tension: 0.3
+            borderColor: '#00f0ff',
+            backgroundColor: '#ff00ff',
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
           }]
         },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: 'white' } } },
           scales: {
-            x: { ticks: { color: 'white' } },
-            y: { ticks: { color: 'white' } }
+            y: { beginAtZero: true }
+          },
+          plugins: {
+            legend: {
+              labels: { color: '#00f0ff' }
+            }
           }
         }
       });
-    });
+    }
   </script>
 </body>
 </html>
